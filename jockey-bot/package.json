@@ -1,0 +1,26 @@
+{
+  "name": "jockey-bot",
+  "version": "1.0.0",
+  "description": "Bot de música para Discord estilo Jockie Music",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "@discordjs/opus": "^0.9.0",
+    "@discordjs/voice": "^0.17.0",
+    "@distube/spotify": "^1.6.0",
+    "@distube/soundcloud": "^1.4.0",
+    "discord.js": "^14.15.3",
+    "distube": "^5.0.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "ffmpeg-static": "^5.2.0",
+    "sodium-native": "^4.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
