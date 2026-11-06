@@ -1,0 +1,16 @@
+{
+  "name": "xloom-music-bot",
+  "version": "1.0.0",
+  "description": "Bot de música de Discord de Xloom: el audio lo sacan los celulares de la comunidad (app Xloom Music)",
+  "main": "src/index.js",
+  "scripts": { "start": "node src/index.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "@snazzah/davey": "^0.1.10",
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "ffmpeg-static": "^5.2.0",
+    "opusscript": "^0.1.1"
+  }
+}
