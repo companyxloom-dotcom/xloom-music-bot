@@ -27,13 +27,19 @@ async function findTrack(query) {
   } catch { return null; }
 }
 
-async function getStream(track) {
+async function getStream(track, onFail) {
   try {
     const a = await nodes.audio(track.id);
     return { stream: a.stream, via: `📱 ${a.node.name}`, cancel: a.cancel };
   } catch { /* respaldo */ }
   const proc = await ytdlp.stream(`https://www.youtube.com/watch?v=${track.id}`);
-  proc.on('close', (code) => { if (code && !proc.killedByUs) proc.stdout.destroy(new Error(proc.err || 'yt-dlp falló')); });
+  proc.on('close', (code) => {
+    if (code && !proc.killedByUs) {
+      console.error('[yt-dlp]', String(proc.err || '').trim().split('\n').pop());
+      if (onFail) onFail(String(proc.err || ''));
+      proc.stdout.destroy(new Error(proc.err || 'yt-dlp falló'));
+    }
+  });
   return { stream: proc.stdout, via: '🖥️ servidor', cancel: () => { proc.killedByUs = true; try { proc.kill(); } catch {} } };
 }
 
@@ -57,7 +63,9 @@ async function playNext(gid) {
   q.loading = true;
   const t = q.current;
   try {
-    const s = await getStream(t);
+    const s = await getStream(t, (msg) => say(q, /sign in|bot|429|403|blocked|forbidden/i.test(msg)
+      ? "❌ YouTube bloqueó la descarga desde el servidor. Hace falta un celular conectado (app Xloom → Ajustes → Prestar mi celular al bot)."
+      : `❌ El servidor no pudo bajar el audio: ${msg.trim().split("\n").pop().slice(0, 140)}`));
     q.cancel = s.cancel;
     s.stream.on('error', () => {});
     q.player.play(V.createAudioResource(s.stream, { inputType: V.StreamType.Arbitrary }));

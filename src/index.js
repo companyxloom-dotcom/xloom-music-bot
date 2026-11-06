@@ -10,7 +10,16 @@ if (!process.env.DISCORD_TOKEN) { console.error('Falta DISCORD_TOKEN en .env'); 
 if (!process.env.NODE_KEY) console.warn('⚠️ Falta NODE_KEY: ningún celular podrá conectarse.');
 
 // Servidor HTTP: los celulares de la comunidad se conectan acá.
-const server = http.createServer(nodes.handle);
+let seen = 0, lastEvent = "ninguno";
+const server = http.createServer((req, res) => {
+  const p = (req.url || "/").split("?")[0];
+  if (p === "/" || p === "/health") {
+    res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    const d = client.isReady() ? `conectado como ${client.user.tag} en ${client.guilds.cache.size} servidor(es), ping ${client.ws.ping}ms` : "NO conectado";
+    return res.end(`Xloom Music bot OK · ${nodes.count()} celulares · discord: ${d} · mensajes vistos: ${seen} · último evento: ${lastEvent} · activo hace ${Math.round(process.uptime())}s`);
+  }
+  nodes.handle(req, res);
+});
 server.requestTimeout = 0; server.timeout = 0; server.headersTimeout = 30000; // las subidas de audio duran lo que dura la canción
 server.listen(process.env.PORT || 3000, () => console.log('[http] escuchando'));
 
@@ -45,6 +54,7 @@ client.once(Events.ClientReady, async (c) => {
 
 client.on(Events.InteractionCreate, async (i) => {
   if (!i.isChatInputCommand() || !i.guild) return;
+  lastEvent = `comando /${i.commandName}`; console.log("[cmd]", lastEvent);
   const q = music.get(i);
   const owner = process.env.OWNER_ID && i.user.id === process.env.OWNER_ID;
   const mine = () => !q || (i.member.voice?.channelId === q.voiceChannelId);
@@ -75,6 +85,7 @@ client.on(Events.InteractionCreate, async (i) => {
   }
 });
 
+client.on(Events.MessageCreate, (m) => { if (!m.author.bot) { seen++; lastEvent = `mensaje de ${m.author.username} (${m.content ? m.content.slice(0, 15) : "contenido vacío"})`; console.log("[msg]", lastEvent); } });
 client.on(Events.MessageCreate, require('./prefix'));
 
 process.on('unhandledRejection', (e) => console.error('[unhandled]', e));
